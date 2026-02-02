@@ -21,7 +21,6 @@ from data.db_access.yjt_data_access.dao.tq_comp_info_dao import TqCompInfoDao
 from data.db_access.yjt_data_access.dao.tq_comp_cboardmap_dao import TqCompCboardmapDao
 from data.db_access.yjt_data_access.dao.tq_bd_relatedparty_dao import TqBdRelatedpartyDao
 from data.db_access.yjt_data_access.dao.tq_bd_creditrtissue_dao import TqBdCreditrtissueDao
-
 from utils.file_util import mkdir
 from utils.addr_util import get_region_pca, get_min_region
 from utils.log_utils import get_logger
@@ -64,7 +63,16 @@ class DataDownload:
     def get_year_month(self, result, attr):
         _temp_year_month = None
         if isinstance(result, list) and len(result) > 0:
-            _temp_year_month = str(max([getattr(_ele, attr) for _ele in result if getattr(_ele, attr) is not None]))
+            # 修改点：先提取非空属性值列表
+            valid_values = [getattr(_ele, attr) for _ele in result if
+                            hasattr(_ele, attr) and getattr(_ele, attr) is not None]
+            # 只有当 valid_values 不为空时才调用 max()
+            if valid_values:
+                _temp_year_month = str(max(valid_values))
+            else:
+                # 如果没有有效日期，返回None
+                return None
+            # _temp_year_month = str(max([getattr(_ele, attr) for _ele in result if getattr(_ele, attr) is not None]))
         elif isinstance(result, dict):
             _temp_year_month = result.get(attr)
         if _temp_year_month is not None:
